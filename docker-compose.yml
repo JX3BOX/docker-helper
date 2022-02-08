@@ -1,0 +1,118 @@
+version: "3"
+
+networks:
+  bnet:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: ${SUBNET_IP}
+
+services:
+  nginx:
+    build: 
+      context: ./nginx/
+      args:
+        - NGINX_INSTALL_VERSION=${NGINX_VERSION}
+    container_name: jb_nginx
+    image: jx3box/nginx:${NGINX_VERSION}-latest
+    ports:
+      - "${NGINX_MAPPING_HTTP_PORT}:${NGINX_DOCKER_HTTP_PORT}"
+      - "${NGINX_MAPPING_HTTPS_PORT}:${NGINX_DOCKER_HTTPS_PORT}"
+    volumes:
+      - ${CODE_DIR_NAME}/:${DOCKER_CODE_DIR_NAME}:rw
+      - ./nginx/conf/conf.d/:/etc/nginx/conf.d/:rw
+      - ./nginx/conf/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf/fastcgi.conf:/etc/nginx/fastcgi.conf:ro
+      - ./nginx/conf/vhost/:/etc/nginx/vhost/:rw
+      - ./nginx/logs/:/var/logs/nginx/:rw
+    links:
+      - php
+    networks:
+      bnet:
+        ipv4_address: ${NGINX_IP} 
+
+  mysql:
+    build: ./mysql/
+    container_name: jb_mysql
+    image: jx3box/mysql
+    ports:
+      - "${MYSQL_MAPPING_PORT}:${MYSQL_DOCKER_PORT}"
+    environment:
+      - TZ=${MYSQL_TZ}
+      - MYSQL_VERSION=${MYSQL_VERSION}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - ${CODE_DIR_NAME}/:${DOCKER_CODE_DIR_NAME}:rw
+      - ./mysql/conf/mysql.conf:/etc/mysql/conf.d/my.cnf:ro
+      - ./mysql/logs:/var/logs/mysql/:rw
+      - ./mysql/data:/var/lib/mysql/:rw
+    networks:
+      bnet:
+        ipv4_address: ${MYSQL_IP}
+
+  php:
+    build: 
+      context: ./php/
+      args:
+        - INSTALL_XDEBUG=${PHP_INSTALL_XDEBUG}
+        - SWOOLE_VERSION=${PHP_SWOOLE_VERSION}
+        - PHP_DOCKER_VERSION=${PHP_VERSION}
+    container_name: jb_php
+    image: jx3box/php:${PHP_VERSION}-latest
+    ports:
+      - "${PHP_OTHER_MAPPING_PORT}:${PHP_OTHER_DOCKER_PORT}"
+      - "${PHP_FPM_MAPPING_PORT}:${PHP_FPM_DOCKER_PORT}"
+    volumes:
+      - ${CODE_DIR_NAME}/:${DOCKER_CODE_DIR_NAME}:rw
+      - ./php/logs/:/var/logs/:rw
+      - ./php/conf/php.ini:/usr/local/etc/php/conf.d/php.ini:ro
+      - ./php/conf/php-fpm.conf:/usr/local/etc/php-fpm.d/php-fpm.conf:ro
+      - ./php/conf/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini:rw
+    links:
+      - mysql
+      - redis
+      - memcached
+    networks:
+      bnet:
+        ipv4_address: ${PHP_FPM_IP}
+
+  redis:
+    build: ./redis/
+    container_name: b_redis
+    image: jx3box/redis
+    ports:
+      - "${REDIS_MAPPING_PORT}:${REDIS_DOCKER_PORT}"
+    volumes:
+      - ./redis/conf/:/etc/redis/:ro
+      - ./redis/data/:/var/run/redis/:rw
+      - ./redis/logs/:/var/logs/:rw
+    networks:
+      bnet:
+        ipv4_address: ${REDIS_IP}
+
+  node:
+    build: 
+      context: ./node/
+      args:
+        - NODE_DOCKER_VERSION=${NODE_VERSION}
+    container_name: jb_node
+    image: jx3box/node:${NODE_VERSION}-latest
+    ports:
+      - "${NODE_MAPPING_PORT}:${NODE_DOCKER_PORT}"
+    volumes:
+      - ${CODE_DIR_NAME}/:${DOCKER_CODE_DIR_NAME}:rw
+    networks:
+      bnet:
+        ipv4_address: ${NODE_IP}
+    tty: true
+
+  memcached:
+    build: ./memcached/
+    container_name: jb_memcached
+    image: jx3box/memcached
+    ports:
+      - "${MEMCACHED_MAPPING_PORT}:${MEMCACHED_DOCKER_PORT}"
+    networks:
+      bnet:
+        ipv4_address: ${MEMCACHED_IP}

@@ -7,7 +7,7 @@
 > init
 
 ```shell
-
+./jbdock.sh init
 ```
 
 > docker-compose up -d
