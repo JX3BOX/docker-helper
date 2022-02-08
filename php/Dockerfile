@@ -116,6 +116,8 @@ RUN set -eux; \
         pecl install swoole-4.3.5; \
       elif [ $(php -r "echo PHP_VERSION_ID - PHP_RELEASE_VERSION;") = "70100" ]; then \
         pecl install swoole-4.5.11; \
+      elif [ $(php -r "echo PHP_MAJOR_VERSION;") = 8  ]; then \
+         pecl install swoole; \
       else \
         pecl install swoole-${SWOOLE_VERSION}; \
       fi; \
