@@ -1,4 +1,4 @@
-# JbDock
+# Jbdock
 
 > PHP docker开发环境
 

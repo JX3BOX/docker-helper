@@ -19,9 +19,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - run: chmod +x blank.sh
+      - run: chmod +x jbdock.sh
       - name: Log into docker
-        if: ${{ github.ref == 'refs/heads/master' }}
+        if: ${{ github.ref == 'refs/heads/main' }}
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -31,9 +31,9 @@ jobs:
         uses: docker/setup-buildx-action@v1
       - run: sed 's/\(PHP_VERSION=\).*/\1${{ matrix.php }}/g' .env.example > .env
       - name: Build Image
-        run: ./blank.sh d build php
+        run: ./jbdock.sh d build php
       - name: Push image
-        if: ${{ github.ref == 'refs/heads/master' }}
+        if: ${{ github.ref == 'refs/heads/main' }}
         run: docker-compose push php
   build-other:
     runs-on: ubuntu-latest
@@ -44,18 +44,18 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - run: chmod +x blank.sh
+      - run: chmod +x jbdock.sh
       - name: Log into docker
-        if: ${{ github.ref == 'refs/heads/master' }}
+        if: ${{ github.ref == 'refs/heads/main' }}
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v1
       - name: Build
-        run: ./blank.sh d build ${{ matrix.name }}
+        run: ./jbdock.sh d build ${{ matrix.name }}
       - name: Push image
-        if: ${{ github.ref == 'refs/heads/master' }}
+        if: ${{ github.ref == 'refs/heads/main' }}
         run: docker-compose push ${{ matrix.name }}
