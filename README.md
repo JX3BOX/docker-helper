@@ -32,6 +32,14 @@
 
 重启nginx
 
+# docker 安装
+
+> linux
+
+> macos
+
+> windows
+
 ## next
 
 1. 启动脚本完善
