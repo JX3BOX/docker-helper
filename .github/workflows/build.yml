@@ -1,8 +1,6 @@
 name: Build All Docker
 
 on:
-  schedule:
-    - cron: "15 10 * * *"
   push:
     branches: [main]
     # Publish semver tags as releases.
