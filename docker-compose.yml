@@ -33,23 +33,26 @@ services:
         ipv4_address: ${NGINX_IP} 
 
   mysql:
-    build: ./mysql/
-    container_name: jb_mysql
-    image: jx3box/mysql
+    build: 
+      context: ./mysql/
+      args:
+        - MYSQL_VERSION=${MYSQL_VERSION}
+    container_name: b_mysql
+    image: jx3box/mysql:${MYSQL_VERSION}-latest
     ports:
       - "${MYSQL_MAPPING_PORT}:${MYSQL_DOCKER_PORT}"
     environment:
       - TZ=${MYSQL_TZ}
-      - MYSQL_VERSION=${MYSQL_VERSION}
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
     volumes:
-      - ${CODE_DIR_NAME}/:${DOCKER_CODE_DIR_NAME}:rw
       - ./mysql/conf/mysql.conf:/etc/mysql/conf.d/my.cnf:ro
       - ./mysql/logs:/var/logs/mysql/:rw
       - ./mysql/data:/var/lib/mysql/:rw
     networks:
       bnet:
         ipv4_address: ${MYSQL_IP}
+    security_opt:
+      - seccomp:unconfined
 
   php:
     build: 
@@ -78,7 +81,8 @@ services:
         ipv4_address: ${PHP_FPM_IP}
 
   redis:
-    build: ./redis/
+    build: 
+      context: ./redis/
     container_name: b_redis
     image: jx3box/redis
     ports:
